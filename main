@@ -1,0 +1,131 @@
+ #include <string>
+  2 #include <vector>
+  3 using namespace std;
+  4
+  5 template <typename C, typename N>
+  6 pair<int, bool> binary_search(const vector < pair<C, N> > & node, const char & character){
+  7     if (node.size() == 0)
+  8     return {0, false};
+  9     int lowerbound = 0;
+ 10     int upperbound = node.size() - 1;
+ 11     int pivot = (upperbound - lowerbound) >> 1;
+ 12     while (true)
+ 13     {
+ 14         if (node[pivot].first < character)
+ 15             lowerbound = pivot + 1;
+ 16         else if (node[pivot].first > character)
+ 17             upperbound = pivot - 1;
+ 18         else
+ 19             return {pivot, true};
+ 20         pivot = ((upperbound - lowerbound) >> 1) + lowerbound;
+ 21         if (upperbound - lowerbound <= 1) {
+ 22             if (node[lowerbound].first == character)
+ 23                 return {lowerbound, true};
+ 24             else if(node[upperbound].first == character)
+ 25                 return {upperbound, true};
+ 26             if (pivot != -1 && pivot < node.size() && node[pivot].first == character)
+ 27                 return {pivot, true};
+ 28             else if (lowerbound == -1)
+ 29                 return {0, false};
+ 30             else if (lowerbound >= node.size() - 1) {
+ 31                 if (lowerbound > node.size() - 1)
+ 32                     lowerbound = node.size() - 1;
+ 33                 if (node[lowerbound].first > character)
+ 34                     return {lowerbound, false};
+ 35                 return {lowerbound, false};
+ 36             }
+ 37             else if (node[lowerbound].first > character)
+ 38                 return {lowerbound, false};
+ 39             else if (node[lowerbound + 1].first > character)
+ 40                 return {lowerbound + 1, false};
+ 41             else
+ 42                 return {lowerbound + 2, false};
+ 43         }
+ 44     }
+ 45 }
+class Node{
+ 60 public:
+ 61     Node(){
+ 62     }
+ 63
+ 64     void insert(const char* str, const int& str_idx)
+ 65     {
+ 66         if(str[str_idx] == 0){
+ 67             children.push_back({0, nullptr});
+ 68         }
+ 69         else if(children.size() == 0){
+ 70             children.push_back({str[str_idx], new Node()});
+ 71         }
+ 72         else if(children.size() == 1 && str[str_idx] != children[0].first){
+ 73             if(str[str_idx] > children[0].first)
+ 74             {
+ 75                 children.push_back({str[str_idx], new Node()});
+ 76                 children[1].second->insert(str, str_idx + 1);
+ 77             }
+ 78             else if(str[str_idx] < children[0].first){
+ 79                 auto it = children.begin();
+ 80                 children.insert(it, {str[str_idx], new Node()});
+ 81                 children[0].second->insert(str, str_idx + 1);
+ 82             }
+ 83         }
+ 84         else{
+ 85             auto result = binary_search(children, str[str_idx]);
+ 86             if(!result.second){
+ 87                 auto it = children.begin();
+ 88                 children.insert(it + result.first, {str[str_idx], new Node()});
+ 89                 children[result.first].second->insert(str, str_idx + 1);
+ 90             }
+ 91         }
+ 92     }
+ 93     int isExist(const string& str, const int& str_idx){
+ 94         if(children.size() == 0){
+ 95             return -1;
+ 96         }
+ 97         else if(children[0].first == 0)
+ 98             return (str_idx);
+ 99         else if(children.size() == 1){
+100             if(children[0].first == str[str_idx]){
+101                 auto result = binary_search(children, str[str_idx]);
+102                 int number = children[result.first].second->isExist(str, str_idx + 1);
+103                 return  (number);
+104             }
+105         }
+106         else {
+107             auto result = binary_search(children, str[str_idx]);
+108             int number = children[result.first].second->isExist(str, str_idx + 1);
+109             return (number);
+110         }
+111         return -1;
+     }
+113 private:
+114     vector <pair<char, Node*> > children;
+115 };
+116
+117
+118 class PatriciaTree{
+119 private:
+120     char* possible_characters;
+121     Node root;
+122 public:
+123     PatriciaTree()
+124     {
+125     }
+126
+127     ~PatriciaTree()
+128     {
+129     }
+130
+131     void insert(const string & str){
+132         root.insert(str.c_str(), 0);
+133     }
+134     void getKey(const string & str ){
+135         for(int i=0; i< str.length(); i++){
+136             int number=root.isExist(str, i);
+137             if(number != -1){
+138                 cout << i << " " << number << endl;
+139                 cout << str.substr(i, number-i) << " AND " << i << endl;
+140             }
+141         }
+142     }
+143 private:
+144 };
